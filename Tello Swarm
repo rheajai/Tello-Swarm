@@ -1,0 +1,157 @@
+# Import the necessary modules
+import socket
+import threading
+import time
+
+# IP and port of Tello
+tello1_address = ('192.168.0.101', 8889)
+tello2_address = ('192.168.0.102', 8889)
+tello3_address = ('192.168.0.104', 8889)
+
+# IP and port of local computer
+local1_address = ('', 9010)
+local2_address = ('', 9011)
+local3_address = ('', 9012)
+
+# Create a UDP connection that we'll send the command to
+sock1 = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+sock2 = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+sock3 = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+
+# Bind to the local address and port
+sock1.bind(local1_address)
+sock2.bind(local2_address)
+sock3.bind(local3_address)
+
+
+# Send the message to Tello and allow for a delay in seconds
+def send123(message1, message2, message3, delay):
+
+# Try to send the message otherwise print the exception
+    try:
+        sock1.sendto(message1.encode(), tello1_address)
+        sock2.sendto(message2.encode(), tello2_address)
+        sock3.sendto(message3.encode(), tello3_address)
+        print("Sending message1: " + message1)
+        print("Sending message2: " + message2)
+        print("Sending message3: " + message3)
+    except Exception as e:
+        print("Error sending: " + str(e))
+
+    time.sleep(delay)
+
+
+def send(message, delay):
+    # Try to send the message otherwise print the exception
+    try:
+          sock1.sendto(message.encode(), tello1_address)
+          sock2.sendto(message.encode(), tello2_address)
+          sock3.sendto(message.encode(), tello3_address)
+          print("Sending message: " + message)
+    except Exception as e:
+          print("Error sending: " + str(e))
+
+  # Delay for a user-defined period of time
+    time.sleep(delay)
+
+# Receive the message from Tello
+def receive():
+  # Continuously loop and listen for incoming messages
+  while True:
+    # Try to receive the message otherwise print the exception
+    try:
+      response1, ip_address = sock1.recvfrom(128)
+      response2, ip_address = sock2.recvfrom(128)
+      response3, ip_address = sock3.recvfrom(128)
+      print("Received message: from Tello EDU #1: " + response1.decode(encoding='utf-8'))
+      print("Received message: from Tello EDU #2: " + response2.decode(encoding='utf-8'))
+      print("Received message: from Tello EDU #3: " + response3.decode(encoding='utf-8'))
+    except Exception as e:
+      # If there's an error close the socket and break out of the loop
+      sock1.close()
+      sock2.close()
+      sock3.close()
+      print("Error receiving: " + str(e))
+      break
+
+# Create and start a listening thread that runs in the background
+# This utilizes our receive functions and will continuously monitor for incoming messages
+receiveThread = threading.Thread(target=receive)
+receiveThread.daemon = True
+receiveThread.start()
+
+# Each leg of the box will be 100 cm. Tello uses cm units by default.
+leg_distance = 150
+
+# Yaw 90 degrees
+square_angle = 90
+triangle_angle = 120
+
+# Yaw clockwise (right)
+yaw_direction = "cw"
+
+# Put Tello into command mode
+send("command", 3)
+
+# Send the takeoff command
+send("takeoff", 5)
+
+getbattery = "battery?"
+
+send(getbattery, 4)
+
+# Loop and create each leg of the box
+for i in range(3):
+  # Fly forward
+  send("forward " + str(leg_distance), 4)
+  # Yaw right
+  send("cw " + str(triangle_angle), 4)
+
+
+#Variables to be coded into instructions
+stop = "stop"
+ccw30 = "ccw 30"
+cw90 = "cw 90"
+ccw150 = "ccw 150"
+back130 = "back 130"
+up20 = "up 20"
+down20 = "down 20"
+up40 = "up 40"
+down40 = "down 40"
+flipf = "flip f"
+flipb = "flip b"
+flipl = "flip l"
+flipr = "flip r"
+
+# Instructions for drones to move up and down,
+# as well as flip in the air
+send123(cw90, ccw30, ccw150, 4)
+send123(stop, stop, back130, 4)
+send123(down20, down20, up20, 4)
+send123(up40, up40, down40, 4)
+send123(down20, down20, up20, 4)
+send123(flipf, flipf, flipb, 4)
+send123(flipl, flipr, flipf, 4)
+
+
+
+'''
+for i in range(4):
+  # Fly forward
+  send("forward " + str(leg_distance), 4)
+  # Yaw right
+  send("cw " + str(square_angle), 3)
+'''
+
+send(getbattery, 3)
+
+# Land
+send("land", 3)
+
+# Print message
+print("Mission completed successfully!")
+
+# Close the socket
+sock1.close()
+sock2.close()
+sock3.close()
