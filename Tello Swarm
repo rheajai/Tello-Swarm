@@ -109,6 +109,8 @@ for i in range(3):
 
 
 #Variables to be coded into instructions
+left20 = "left 20"
+right20 = "right 20"
 stop = "stop"
 ccw30 = "ccw 30"
 cw90 = "cw 90"
@@ -125,23 +127,19 @@ flipr = "flip r"
 
 # Instructions for drones to move up and down,
 # as well as flip in the air
-send123(cw90, ccw30, ccw150, 4)
-send123(stop, stop, back130, 4)
-send123(down20, down20, up20, 4)
-send123(up40, up40, down40, 4)
+send123(ccw30, cw90, ccw150, 4)
+send123(left20, right20, back130, 4)
+send123(up20, up20, up20, 4)
 send123(down20, down20, up20, 4)
 send123(flipf, flipf, flipb, 4)
+send123(up40, up40, down40, 4)
+send123(flipb, flipb, flipf, 4)
+send123(down20, down20, up20, 4)
+send123(down20, up20, stop, 4)
+send123(up40, down40, stop, 4)
+send123(down20, up20, stop, 4)
+send123(flipf, flipf, flipb, 4)
 send123(flipl, flipr, flipf, 4)
-
-
-
-'''
-for i in range(4):
-  # Fly forward
-  send("forward " + str(leg_distance), 4)
-  # Yaw right
-  send("cw " + str(square_angle), 3)
-'''
 
 send(getbattery, 3)
 
